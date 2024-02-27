@@ -1,17 +1,24 @@
 #pragma once
 #include <utility>
 
+// small macro to reduce repeated code
+#define DEFINE_VARIABLE_AND_CONSTANT(function) \
+const function const;                          \
+function
+
 template<typename Type> class Vector
 {
 public:
 	Vector();
 	Vector(size_t amount);
 	Vector(size_t amount, Type value);
+	Vector(Type* begin, size_t amount);
 	Vector(const Vector<Type>& rhs);
 	~Vector();
 
 	void Clear();
 	void PushBack(Type&& value);
+	void PushBack(const Type& value);
 	void PopBack();
 	void Resize(size_t newSize);
 	size_t GetSize();
@@ -21,16 +28,10 @@ public:
 
 	Vector<Type>& operator=(const Vector<Type>& rhs);
 
-	const Type& operator[](size_t index) const;
-	      Type& operator[](size_t index);
-	
-	const Type& Back() const;
-	      Type& Back();
-
-	const Type* begin() const;
-	const Type* end() const;
-	Type* begin();
-	Type* end();
+	DEFINE_VARIABLE_AND_CONSTANT(Type& operator[](size_t index));
+	DEFINE_VARIABLE_AND_CONSTANT(Type& Back());
+	DEFINE_VARIABLE_AND_CONSTANT(Type* begin());
+	DEFINE_VARIABLE_AND_CONSTANT(Type* end());
 	     
 private:
 	void Alloc(size_t amount);
@@ -49,10 +50,9 @@ Vector<Type>::Vector()
 }
 
 template<typename Type>
-Vector<Type>::Vector(size_t amount)
+Vector<Type>::Vector(size_t amount) : size(amount)
 {
 	Realloc(amount);
-	size = amount;
 }
 
 template<typename Type>
@@ -64,12 +64,19 @@ Vector<Type>::Vector(size_t amount, Type value)
 }
 
 template<typename Type>
-Vector<Type>::Vector(const Vector<Type>& rhs)
+Vector<Type>::Vector(Type* begin, size_t amount) : size(amount)
+{
+	Alloc(amount);
+	for (size_t i = 0; i < amount; i++)
+		new(&data[i]) Type(begin[i]);
+}
+
+template<typename Type>
+Vector<Type>::Vector(const Vector<Type>& rhs) : size(rhs.size)
 {
 	Alloc(rhs.reserved);
 	for (size_t i = 0; i < rhs.size; i++)
-		data[i] = std::move(rhs.data[i]);
-	size = rhs.size;
+		new(&data[i]) Type(rhs.data[i]);
 }
 
 template<typename Type>
@@ -83,14 +90,21 @@ void Vector<Type>::Clear()
 {
 	for (size_t i = 0; i < size; i++)
 		data[i].~Type();
+	size = 0;
 }
 
 template<typename Type>
 void Vector<Type>::PushBack(Type&& value)
 {
 	if (size >= reserved) Realloc(reserved * 2);
-	data[size] = std::move(value);
-	size++;
+	data[size++] = std::move(value);
+}
+
+template<typename Type>
+void Vector<Type>::PushBack(const Type& value)
+{
+	if (size >= reserved) Realloc(reserved * 2);
+	data[size++] = value;
 }
 
 template<typename Type>
@@ -177,3 +191,4 @@ const Type* Vector<Type>::end() const { return data + size; }
 template<typename Type>
 Type* Vector<Type>::end() { return data + size; }
 #pragma endregion iterators
+#undef DEFINE_VARIABLE_AND_CONSTANT

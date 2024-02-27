@@ -13,39 +13,34 @@ void OptionalExample()
 	std::cout << opt.HasValue() << "\n\n";
 }
 
+
+Vector<int> FibonacciSequence()
+{
+	Vector<int> ret;
+	int x = 0, y = 1, z = 0;
+	for (int i = 0; i < 20; i++)
+	{
+		ret.PushBack(x);
+		z = x + y;
+		x = y;
+		y = z;
+	}
+	return ret;
+}
+
 void VectorExample()
 {
-	Vector<int> vec(11, 6);
-	std::cout << vec.GetSize() << '\n';
+	std::cout << "vector example:\n";
 
-	Vector<int> v2 = vec;
-	for (int i : v2)
+	Vector<int> fibo = FibonacciSequence();
+	for (int i : fibo)
 		std::cout << i << '\n';
-
-	vec.PushBack(1);
-	vec.PopBack();
-
-	std::cout << vec.GetSize() << "\n\n";
-
-	struct MyStruct
-	{
-		MyStruct() = default;
-		MyStruct(float newVar1, int newVar2) : myVar1(newVar1), myVar2(newVar2) {}
-
-		float myVar1;
-		int myVar2;
-	};
-
-	Vector<MyStruct> v;
-	v.PushBack(1.0f, 2);
-
-	std::cout << v[0].myVar2 << "\n\n";
-
-	v.PopBack();
 }
 
 void ListExample()
 {
+	std::cout << "list example:\n";
+
 	List<int> list;
 
 	list.PushBack(2);
